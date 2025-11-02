@@ -14,7 +14,7 @@ This document outlines the core technologies used in this project and provides g
 *   **Icons**: Lucide React for vector icons
 *   **Form Management**: React Hook Form with Zod for schema validation
 *   **Notifications**: Sonner for toast notifications
-*   **Audio Processing**: `pitchy` for real-time pitch detection, `music-metadata-browser` for file metadata extraction, and `wavesurfer.js` for audio waveform visualization.
+*   **Audio Processing**: `pitchy`, `music-metadata-browser`, and `wavesurfer.js` for audio analysis and visualization.
 
 ## Library Usage Rules
 
