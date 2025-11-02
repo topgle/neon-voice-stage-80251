@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">neon-voice-stage-80251-main</string>
+    <string name="title_activity_main">neon-voice-stage-80251-main</string>
+    <string name="package_name">com.example.neonvoicestage80251main</string>
+    <string name="custom_url_scheme">com.example.neonvoicestage80251main</string>
+</resources>
