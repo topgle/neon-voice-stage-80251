@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { parseBlob } from 'music-metadata-browser';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { validateAudioFile, sanitizeFilename, sanitizeMetadata } from '@/utils/fileValidation';
 
 export interface ScannedFile {
   file: File;
@@ -77,8 +78,16 @@ export const useFileScanner = () => {
 
   const indexFile = async (scannedFile: ScannedFile): Promise<boolean> => {
     try {
+      // Validate file before upload
+      const validation = validateAudioFile(scannedFile.file);
+      if (!validation.valid) {
+        console.error('File validation failed:', validation.error);
+        return false;
+      }
+
       const fileExt = scannedFile.format;
-      const fileName = `${Date.now()}-${scannedFile.file.name}`;
+      const sanitizedName = sanitizeFilename(scannedFile.file.name);
+      const fileName = `${Date.now()}_${sanitizedName}`;
       const filePath = `songs/${fileName}`;
 
       // Upload to storage
@@ -103,18 +112,18 @@ export const useFileScanner = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Save to database
+      // Sanitize metadata before database insertion
       const { error: dbError } = await supabase
         .from('songs')
         .insert([{
-          title: scannedFile.title,
-          artist: scannedFile.artist,
-          album: scannedFile.album,
+          title: sanitizeMetadata(scannedFile.title),
+          artist: sanitizeMetadata(scannedFile.artist),
+          album: scannedFile.album ? sanitizeMetadata(scannedFile.album) : undefined,
           duration: scannedFile.duration,
           file_path: publicUrl,
           source: 'local',
           format: fileExt as any,
-          genre: scannedFile.genre,
+          genre: scannedFile.genre ? sanitizeMetadata(scannedFile.genre) : undefined,
           bpm: scannedFile.bpm,
           thumbnail_url: scannedFile.thumbnailUrl,
           tags: ['importado', 'local'],

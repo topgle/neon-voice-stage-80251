@@ -7,6 +7,7 @@ import { Wand2, Loader2, FileAudio, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSongs } from "@/hooks/useSongs";
+import { validateAudioFile, sanitizeFilename, sanitizeMetadata } from "@/utils/fileValidation";
 
 export const AIAudioProcessor = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -18,15 +19,20 @@ export const AIAudioProcessor = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (selectedFile.type.startsWith('audio/')) {
-        setFile(selectedFile);
-      } else {
+      
+      // Validate file
+      const validation = validateAudioFile(selectedFile);
+      if (!validation.valid) {
         toast({
           title: "Arquivo inválido",
-          description: "Por favor, selecione um arquivo de áudio válido",
+          description: validation.error || "Arquivo não atende aos requisitos",
           variant: "destructive"
         });
+        e.target.value = ''; // Clear the input
+        return;
       }
+      
+      setFile(selectedFile);
     }
   };
 
@@ -43,10 +49,18 @@ export const AIAudioProcessor = () => {
     setProcessing(true);
 
     try {
-      // Step 1: Upload do arquivo
-      setStep("Fazendo upload do arquivo...");
+      // Step 1: Validate and upload file
+      setStep("Validando e fazendo upload do arquivo...");
+      
+      // Re-validate file (defense in depth)
+      const validation = validateAudioFile(file);
+      if (!validation.valid) {
+        throw new Error(validation.error || "Arquivo inválido");
+      }
+      
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      const sanitizedName = sanitizeFilename(file.name);
+      const fileName = `${Date.now()}_${sanitizedName}`;
       const filePath = `songs/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -81,10 +95,10 @@ export const AIAudioProcessor = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
       
-      // Extrair metadados básicos do nome do arquivo
+      // Extract and sanitize metadata from filename
       const fileName_parts = file.name.replace(/\.[^/.]+$/, "").split('-');
-      const title = fileName_parts[0]?.trim() || 'Música sem título';
-      const artist = fileName_parts[1]?.trim() || 'Artista desconhecido';
+      const title = sanitizeMetadata(fileName_parts[0] || 'Música sem título');
+      const artist = sanitizeMetadata(fileName_parts[1] || 'Artista desconhecido');
 
       // Get audio duration
       const audio = new Audio(URL.createObjectURL(file));

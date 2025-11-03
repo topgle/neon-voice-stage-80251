@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { validateAudioFile, sanitizeFilename, sanitizeMetadata } from "@/utils/fileValidation";
 
 export interface Song {
   id: string;
@@ -42,8 +43,15 @@ export const useSongs = () => {
       file: File; 
       metadata: Partial<Song>;
     }) => {
+      // Validate file
+      const validation = validateAudioFile(file);
+      if (!validation.valid) {
+        throw new Error(validation.error || "Arquivo inválido");
+      }
+
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      const sanitizedName = sanitizeFilename(file.name);
+      const fileName = `${Date.now()}_${sanitizedName}`;
       const filePath = `songs/${fileName}`;
 
       // Upload file to storage
@@ -62,17 +70,17 @@ export const useSongs = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Insert song record
+      // Sanitize and insert song record
       const { data, error } = await supabase
         .from('songs')
         .insert([{
-          title: metadata.title || 'Untitled',
-          artist: metadata.artist || 'Unknown',
+          title: sanitizeMetadata(metadata.title || 'Untitled'),
+          artist: sanitizeMetadata(metadata.artist || 'Unknown'),
           duration: metadata.duration || 0,
           file_path: publicUrl,
           source: 'local',
           format: fileExt as any,
-          album: metadata.album,
+          album: metadata.album ? sanitizeMetadata(metadata.album) : undefined,
           thumbnail_url: metadata.thumbnail_url,
           tags: metadata.tags,
           user_id: user.id,
