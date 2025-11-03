@@ -11,6 +11,7 @@ import TheVoices from "./pages/TheVoices";
 import Assistant from "./pages/Assistant";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/the-voices" element={<AuthGuard><TheVoices /></AuthGuard>} />
           <Route path="/assistant" element={<AuthGuard><Assistant /></AuthGuard>} />
           <Route path="/settings" element={<AuthGuard><Settings /></AuthGuard>} />
+          <Route path="/admin" element={<AuthGuard><Admin /></AuthGuard>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

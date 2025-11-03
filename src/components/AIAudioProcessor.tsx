@@ -78,6 +78,9 @@ export const AIAudioProcessor = () => {
       // Step 4: Cadastrar música
       setStep("Cadastrando música no sistema...");
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+      
       // Extrair metadados básicos do nome do arquivo
       const fileName_parts = file.name.replace(/\.[^/.]+$/, "").split('-');
       const title = fileName_parts[0]?.trim() || 'Música sem título';
@@ -101,6 +104,7 @@ export const AIAudioProcessor = () => {
           format: fileExt as any,
           lyrics_timed: lyricsData?.lyrics ? { lyrics: lyricsData.lyrics } : null,
           instrumental_track_path: vocalData?.instrumentalUrl,
+          user_id: user.id,
         }]);
 
       if (insertError) throw insertError;

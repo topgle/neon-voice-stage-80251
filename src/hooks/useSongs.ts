@@ -58,6 +58,10 @@ export const useSongs = () => {
         .from('karaoke-songs')
         .getPublicUrl(filePath);
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       // Insert song record
       const { data, error } = await supabase
         .from('songs')
@@ -71,6 +75,7 @@ export const useSongs = () => {
           album: metadata.album,
           thumbnail_url: metadata.thumbnail_url,
           tags: metadata.tags,
+          user_id: user.id,
         }])
         .select()
         .single();

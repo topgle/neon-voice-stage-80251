@@ -1,12 +1,14 @@
-import { Home, Music, ListMusic, Trophy, Bot, Settings, LogOut } from "lucide-react";
+import { Home, Music, ListMusic, Trophy, Bot, Settings, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdmin } = useUserRole();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -34,7 +36,11 @@ export const Navigation = () => {
     icon: Bot,
     label: "Assistente",
     path: "/assistant"
-  }];
+  }, ...(isAdmin ? [{
+    icon: Shield,
+    label: "Admin",
+    path: "/admin"
+  }] : [])];
 
   return <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-t border-border/50 md:top-0 md:bottom-auto md:border-t-0 md:border-b">
       <div className="container mx-auto px-4">

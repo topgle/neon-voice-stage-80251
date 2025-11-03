@@ -99,6 +99,10 @@ export const useFileScanner = () => {
         .from('karaoke-songs')
         .getPublicUrl(filePath);
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       // Save to database
       const { error: dbError } = await supabase
         .from('songs')
@@ -114,6 +118,7 @@ export const useFileScanner = () => {
           bpm: scannedFile.bpm,
           thumbnail_url: scannedFile.thumbnailUrl,
           tags: ['importado', 'local'],
+          user_id: user.id,
         }]);
 
       if (dbError) {

@@ -61,6 +61,9 @@ export const YouTubeSearchDialog = ({ trigger }: YouTubeSearchDialogProps = {}) 
 
   const addYouTubeVideo = async (video: YouTubeVideo) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { error } = await supabase.from('songs').insert([{
         title: video.title,
         artist: video.channelTitle,
@@ -69,6 +72,7 @@ export const YouTubeSearchDialog = ({ trigger }: YouTubeSearchDialogProps = {}) 
         source_id: video.id,
         thumbnail_url: video.thumbnail,
         format: 'youtube' as any,
+        user_id: user.id,
       }]);
 
       if (error) throw error;

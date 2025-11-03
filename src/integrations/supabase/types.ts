@@ -191,6 +191,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       songs: {
         Row: {
           added_at: string
@@ -216,7 +243,7 @@ export type Database = {
           thumbnail_url: string | null
           title: string
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           added_at?: string
@@ -242,7 +269,7 @@ export type Database = {
           thumbnail_url?: string | null
           title: string
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           added_at?: string
@@ -268,7 +295,7 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -305,14 +332,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       increment_play_count: { Args: { song_uuid: string }; Returns: undefined }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       song_format: "mp4" | "mov" | "m4v" | "mp3" | "aac" | "wav" | "webm"
       song_source: "local" | "youtube" | "vimeo" | "external"
     }
@@ -442,6 +502,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       song_format: ["mp4", "mov", "m4v", "mp3", "aac", "wav", "webm"],
       song_source: ["local", "youtube", "vimeo", "external"],
     },
