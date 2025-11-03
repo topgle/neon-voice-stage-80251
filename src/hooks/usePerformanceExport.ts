@@ -19,7 +19,7 @@ export const usePerformanceExport = () => {
   const fetchPerformances = async (sessionId?: string): Promise<Performance[]> => {
     try {
       let query = supabase
-        .from('performances' as any)
+        .from('performances')
         .select('*')
         .order('performed_at', { ascending: false });
 
@@ -30,7 +30,7 @@ export const usePerformanceExport = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as Performance[];
+      return (data || []) as unknown as Performance[];
     } catch (error) {
       console.error('Error fetching performances:', error);
       return [];

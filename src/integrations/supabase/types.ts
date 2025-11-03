@@ -14,16 +14,307 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      participants: {
+        Row: {
+          avatar_url: string | null
+          display_name: string
+          id: string
+          joined_at: string
+          preferred_songs: string[] | null
+          session_id: string
+          total_score: number | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name: string
+          id?: string
+          joined_at?: string
+          preferred_songs?: string[] | null
+          session_id: string
+          total_score?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string
+          id?: string
+          joined_at?: string
+          preferred_songs?: string[] | null
+          session_id?: string
+          total_score?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "the_voices_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performances: {
+        Row: {
+          created_at: string
+          expression_score: number | null
+          feedback_text: string | null
+          id: string
+          participant_id: string
+          performed_at: string
+          pitch_accuracy: number | null
+          rhythm_accuracy: number | null
+          score: number
+          session_id: string
+          song_id: string
+        }
+        Insert: {
+          created_at?: string
+          expression_score?: number | null
+          feedback_text?: string | null
+          id?: string
+          participant_id: string
+          performed_at?: string
+          pitch_accuracy?: number | null
+          rhythm_accuracy?: number | null
+          score?: number
+          session_id: string
+          song_id: string
+        }
+        Update: {
+          created_at?: string
+          expression_score?: number | null
+          feedback_text?: string | null
+          id?: string
+          participant_id?: string
+          performed_at?: string
+          pitch_accuracy?: number | null
+          rhythm_accuracy?: number | null
+          score?: number
+          session_id?: string
+          song_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performances_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performances_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "the_voices_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performances_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlist_songs: {
+        Row: {
+          added_at: string
+          id: string
+          playlist_id: string
+          position: number
+          song_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          playlist_id: string
+          position: number
+          song_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          playlist_id?: string
+          position?: number
+          song_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_songs_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_songs_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      songs: {
+        Row: {
+          added_at: string
+          album: string | null
+          artist: string
+          bpm: number | null
+          created_at: string
+          downloadable: boolean | null
+          duration: number
+          file_path: string | null
+          fingerprint: string | null
+          format: Database["public"]["Enums"]["song_format"]
+          genre: string | null
+          id: string
+          instrumental_track_path: string | null
+          key: string | null
+          last_played_at: string | null
+          lyrics_timed: Json | null
+          play_count: number | null
+          source: Database["public"]["Enums"]["song_source"]
+          source_id: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          added_at?: string
+          album?: string | null
+          artist?: string
+          bpm?: number | null
+          created_at?: string
+          downloadable?: boolean | null
+          duration: number
+          file_path?: string | null
+          fingerprint?: string | null
+          format: Database["public"]["Enums"]["song_format"]
+          genre?: string | null
+          id?: string
+          instrumental_track_path?: string | null
+          key?: string | null
+          last_played_at?: string | null
+          lyrics_timed?: Json | null
+          play_count?: number | null
+          source?: Database["public"]["Enums"]["song_source"]
+          source_id?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          added_at?: string
+          album?: string | null
+          artist?: string
+          bpm?: number | null
+          created_at?: string
+          downloadable?: boolean | null
+          duration?: number
+          file_path?: string | null
+          fingerprint?: string | null
+          format?: Database["public"]["Enums"]["song_format"]
+          genre?: string | null
+          id?: string
+          instrumental_track_path?: string | null
+          key?: string | null
+          last_played_at?: string | null
+          lyrics_timed?: Json | null
+          play_count?: number | null
+          source?: Database["public"]["Enums"]["song_source"]
+          source_id?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      the_voices_sessions: {
+        Row: {
+          created_at: string
+          finished_at: string | null
+          host_id: string
+          id: string
+          name: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          finished_at?: string | null
+          host_id: string
+          id?: string
+          name: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          finished_at?: string | null
+          host_id?: string
+          id?: string
+          name?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_play_count: { Args: { song_uuid: string }; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      song_format: "mp4" | "mov" | "m4v" | "mp3" | "aac" | "wav" | "webm"
+      song_source: "local" | "youtube" | "vimeo" | "external"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +441,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      song_format: ["mp4", "mov", "m4v", "mp3", "aac", "wav", "webm"],
+      song_source: ["local", "youtube", "vimeo", "external"],
+    },
   },
 } as const

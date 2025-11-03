@@ -100,12 +100,11 @@ const tools = [
 ];
 
 // Execute tool functions
-async function executeTool(toolName: string, args: any, supabase: any) {
+async function executeTool(toolName: string, args: any, supabase: any, userId: string) {
   console.log(`Executing tool: ${toolName} with args:`, args);
 
   switch (toolName) {
     case "search_youtube":
-      // Simula busca no YouTube - em produção, usaria YouTube Data API
       return {
         results: [
           {
@@ -119,7 +118,6 @@ async function executeTool(toolName: string, args: any, supabase: any) {
       };
 
     case "add_song_to_playlist":
-      // Busca a música e playlist
       const { data: songs } = await supabase
         .from('songs')
         .select('id, title')
@@ -130,6 +128,7 @@ async function executeTool(toolName: string, args: any, supabase: any) {
         .from('playlists')
         .select('id, name')
         .ilike('name', `%${args.playlist_name}%`)
+        .eq('user_id', userId)
         .limit(1);
 
       if (!songs || songs.length === 0) {
@@ -140,7 +139,6 @@ async function executeTool(toolName: string, args: any, supabase: any) {
         return { success: false, message: `Playlist "${args.playlist_name}" não encontrada.` };
       }
 
-      // Get max position
       const { data: existingSongs } = await supabase
         .from('playlist_songs')
         .select('position')
@@ -152,7 +150,6 @@ async function executeTool(toolName: string, args: any, supabase: any) {
         ? existingSongs[0].position + 1 
         : 0;
 
-      // Add to playlist
       const { error } = await supabase
         .from('playlist_songs')
         .insert([{
@@ -176,7 +173,7 @@ async function executeTool(toolName: string, args: any, supabase: any) {
         .insert([{
           name: args.session_name,
           status: 'waiting',
-          host_id: 'assistant-created'
+          host_id: userId
         }])
         .select()
         .single();
@@ -185,7 +182,6 @@ async function executeTool(toolName: string, args: any, supabase: any) {
         return { success: false, message: `Erro ao criar sessão: ${sessionError.message}` };
       }
 
-      // Add participants
       const participantInserts = args.participants.map((name: string) => ({
         session_id: session.id,
         display_name: name,
@@ -213,6 +209,7 @@ async function executeTool(toolName: string, args: any, supabase: any) {
       const { data: playlistsList } = await supabase
         .from('playlists')
         .select('id, name, description')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       return {
@@ -244,20 +241,44 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate user
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { messages } = await req.json();
+
+    // Validate input
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return new Response(JSON.stringify({ error: 'Invalid input' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
-
-    const supabase = createClient(
-      SUPABASE_URL!,
-      SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const systemPrompt = `Você é um assistente de voz para um aplicativo de karaokê chamado "Neon Voice Stage".
 
@@ -330,7 +351,7 @@ Limitações atuais:
         const functionName = toolCall.function.name;
         const functionArgs = JSON.parse(toolCall.function.arguments);
         
-        const result = await executeTool(functionName, functionArgs, supabase);
+        const result = await executeTool(functionName, functionArgs, supabase, user.id);
         
         toolResults.push({
           tool_call_id: toolCall.id,

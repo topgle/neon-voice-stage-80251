@@ -1,9 +1,19 @@
-import { Home, Music, ListMusic, Trophy, Bot, Settings } from "lucide-react";
+import { Home, Music, ListMusic, Trophy, Bot, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
 export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Logout realizado com sucesso!");
+    navigate("/auth");
+  };
+
   const navItems = [{
     icon: Home,
     label: "Início",
@@ -25,6 +35,7 @@ export const Navigation = () => {
     label: "Assistente",
     path: "/assistant"
   }];
+
   return <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-t border-border/50 md:top-0 md:bottom-auto md:border-t-0 md:border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between md:justify-center py-3">
@@ -43,9 +54,14 @@ export const Navigation = () => {
           })}
           </div>
 
-          <Button variant={location.pathname === "/settings" ? "neon" : "ghost"} size="icon" onClick={() => navigate("/settings")} className="hidden md:flex">
-            <Settings className="h-5 w-5" />
-          </Button>
+          <div className="hidden md:flex items-center gap-2">
+            <Button variant={location.pathname === "/settings" ? "neon" : "ghost"} size="icon" onClick={() => navigate("/settings")}>
+              <Settings className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </nav>;
